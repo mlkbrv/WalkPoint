@@ -17,6 +17,8 @@ class UserSerializer(serializers.ModelSerializer):
             'instagram',
             'profile_pic',
             'cover',
+            'total_steps',
+            'available_steps'
         ]
 
 
