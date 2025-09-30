@@ -1,7 +1,8 @@
 from rest_framework.response import Response
 from rest_framework import generics, permissions, status
-from .models import User
-from .serializers import UserRegisterSerializer, UserSerializer
+from .models import User, DailyStep
+from .serializers import UserRegisterSerializer, UserSerializer, DailyStepSerializer
+from datetime import date
 
 class UserRegisterAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -26,3 +27,12 @@ class ProfileAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         return self.request.user
+
+class UserStepAPIView(generics.RetrieveAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = DailyStepSerializer
+
+    def get_object(self):
+        today = date.today()
+        daily_step, _ = DailyStep.objects.get_or_create(user=self.request.user, date=today)
+        return daily_step

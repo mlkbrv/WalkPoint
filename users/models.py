@@ -2,6 +2,7 @@ import re
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from datetime import date
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import FileExtensionValidator
 
@@ -87,4 +88,27 @@ class User(AbstractUser):
     def __str__(self):
         return self.get_full_name() or self.email
 
+    def transfer_daily_steps(self, date):
+        try:
+            daily_step = self.daily_steps.get(date=date)
+            if daily_step.steps > 0:
+                self.total_steps += daily_step.steps
+                self.available_steps += daily_step.steps
+                self.save(update_fields=['total_steps', 'available_steps'])
+                return daily_step.steps
+        except DailyStep.DoesNotExist:
+            pass
+        return 0
 
+
+class DailyStep(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="daily_steps")
+    date = models.DateField(default=date.today)
+    steps = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ("user", "date")
+        ordering = ("-date",)
+
+    def __str__(self):
+        return f"{self.user.get_full_name() or self.user.email} - {self.date}: {self.steps}"

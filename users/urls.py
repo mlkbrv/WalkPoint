@@ -10,4 +10,5 @@ urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', ProfileAPIView.as_view(), name='profile'),
+    path('steps/today/', UserStepAPIView.as_view(), name='steps-today'),
 ]

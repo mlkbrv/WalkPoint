@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import User
+from users.models import User, DailyStep
 from .models import validate_password
 
 
@@ -48,3 +48,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         user = User.objects.create_user(password=password, **validated_data)
         return user
+
+
+class DailyStepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyStep
+        fields = [
+            'date',
+            'steps'
+        ]

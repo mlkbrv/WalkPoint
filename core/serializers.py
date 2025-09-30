@@ -37,3 +37,14 @@ class UserPromotionSerializer(serializers.ModelSerializer):
             'promotion',
             'redeemed_at'
         ]
+
+
+class PromotionPurchaseSerializer(serializers.Serializer):
+    promotion_uuid = serializers.UUIDField()
+    
+    def validate_promotion_uuid(self, value):
+        try:
+            promotion = Promotion.objects.get(uuid=value, is_active=True)
+        except Promotion.DoesNotExist:
+            raise serializers.ValidationError("Promotion not found or inactive")
+        return value
