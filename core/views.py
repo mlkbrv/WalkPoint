@@ -4,9 +4,8 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from django.db import transaction
-from serializers import *
+from .serializers import *
 from .models import *
-
 from .permissions import IsPartner
 
 

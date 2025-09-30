@@ -15,7 +15,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Determine which date to process
         if options['date']:
             try:
                 target_date = date.fromisoformat(options['date'])
@@ -25,12 +24,11 @@ class Command(BaseCommand):
                 )
                 return
         else:
-            # Default to yesterday
             target_date = date.today() - timedelta(days=1)
 
         self.stdout.write(f'Processing daily steps for {target_date}...')
 
-        # Get all users who have daily steps for this date
+
         daily_steps = DailyStep.objects.filter(date=target_date, steps__gt=0)
         
         if not daily_steps.exists():

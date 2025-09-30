@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-@g!w2=c%txyifj3m!t*#vlak1$)e)!mep53gx1_82wi4bzu=61
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,10 +41,12 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'rest_framework',
     'rest_framework_simplejwt',
-    'phonenumber_field'
+    'phonenumber_field',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -154,3 +156,7 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": True,
     'USERNAME_FIELD': 'email',
 }
+
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
