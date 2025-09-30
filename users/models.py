@@ -57,6 +57,9 @@ class User(AbstractUser):
     bio = models.TextField(null=True, blank=True)
     instagram = models.URLField(null=True, blank=True)
 
+    total_steps = models.PositiveIntegerField(default=0)
+    available_steps = models.PositiveIntegerField(default=0)
+
     profile_pic = models.ImageField(
         upload_to="users/profile_pics/",
         null=True, blank=True,
@@ -83,3 +86,5 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.get_full_name() or self.email
+
+
