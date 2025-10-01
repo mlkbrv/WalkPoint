@@ -1,16 +1,10 @@
 {
   "expo": {
-    "name": "WalkPoint",
+    "name": "🚶‍♂️ WalkPoint",
     "slug": "walkpoint-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#4CAF50"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -22,19 +16,18 @@
       }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#4CAF50"
-      },
       "permissions": [
         "android.permission.ACTIVITY_RECOGNITION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.INTERNET"
-      ]
+      ],
+      "package": "com.emil_a.walkpointapp"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "extra": {
+      "eas": {
+        "projectId": "1f07b189-81a0-4243-a001-99aef8660c90"
+      }
     }
   }
 }

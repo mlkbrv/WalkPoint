@@ -14,6 +14,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {AuthService} from '../services/AuthService';
 import {StepTrackingService} from '../services/StepTrackingService';
+import StepCounter from '../components/StepCounter';
 
 interface DailyStep {
   date: string;
@@ -27,6 +28,7 @@ const StepTrackingScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
   const [pedometerAvailable, setPedometerAvailable] = useState(false);
+  const [realTimeSteps, setRealTimeSteps] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -60,16 +62,24 @@ const StepTrackingScreen: React.FC = () => {
         setUser(profileResult.data);
       }
 
-      if (stepsResult.success) {
-        setTodaySteps(stepsResult.data.steps);
-      } else if (pedometerAvailable && deviceSteps > 0) {
-        // Use device steps if server steps are not available
+      // Always use device steps if pedometer is available
+      if (pedometerAvailable) {
         setTodaySteps(deviceSteps);
+      } else if (stepsResult.success) {
+        setTodaySteps(stepsResult.data.steps);
       }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStepsUpdate = (steps: number) => {
+    setRealTimeSteps(steps);
+    // Update todaySteps if real-time tracking is active
+    if (isTracking) {
+      setTodaySteps(steps);
     }
   };
 
@@ -81,20 +91,20 @@ const StepTrackingScreen: React.FC = () => {
 
   const handleStartTracking = async () => {
     if (!pedometerAvailable) {
-      Alert.alert('Error', 'Step tracking is not available on this device');
+      Alert.alert('Ошибка', 'Отслеживание шагов недоступно на этом устройстве');
       return;
     }
 
     try {
-      const success = await StepTrackingService.startStepTracking();
+      const success = await StepTrackingService.startStepTracking(handleStepsUpdate);
       if (success) {
         setIsTracking(true);
-        Alert.alert('Success', 'Step tracking started!');
+        Alert.alert('Успех', 'Отслеживание шагов запущено!');
       } else {
-        Alert.alert('Error', 'Failed to start step tracking');
+        Alert.alert('Ошибка', 'Не удалось запустить отслеживание шагов');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to start step tracking');
+      Alert.alert('Ошибка', 'Не удалось запустить отслеживание шагов');
     }
   };
 
@@ -102,28 +112,28 @@ const StepTrackingScreen: React.FC = () => {
     try {
       await StepTrackingService.stopStepTracking();
       setIsTracking(false);
-      Alert.alert('Success', 'Step tracking stopped!');
+      Alert.alert('Успех', 'Отслеживание шагов остановлено!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to stop step tracking');
+      Alert.alert('Ошибка', 'Не удалось остановить отслеживание шагов');
     }
   };
 
   const handleAddSteps = () => {
     Alert.prompt(
-      'Add Steps',
-      'Enter the number of steps to add:',
+      'Добавить шаги',
+      'Введите количество шагов для добавления:',
       [
-        {text: 'Cancel', style: 'cancel'},
+        {text: 'Отмена', style: 'cancel'},
         {
-          text: 'Add',
+          text: 'Добавить',
           onPress: async (steps) => {
             if (steps && !isNaN(Number(steps))) {
-              // Here you would typically call an API to update steps
-              // For now, we'll just show a message
-              Alert.alert('Success', 'Steps added successfully!');
+              // Simulate steps for testing
+              await StepTrackingService.simulateSteps(Number(steps));
+              Alert.alert('Успех', 'Шаги успешно добавлены!');
               loadData();
             } else {
-              Alert.alert('Error', 'Please enter a valid number');
+              Alert.alert('Ошибка', 'Пожалуйста, введите корректное число');
             }
           },
         },
@@ -134,6 +144,15 @@ const StepTrackingScreen: React.FC = () => {
     );
   };
 
+  const handleQuickAddSteps = async (steps: number) => {
+    try {
+      await StepTrackingService.simulateSteps(steps);
+      loadData();
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось добавить шаги');
+    }
+  };
+
   const getProgressPercentage = () => {
     const dailyGoal = 10000; // Default daily goal
     return Math.min((todaySteps / dailyGoal) * 100, 100);
@@ -142,22 +161,22 @@ const StepTrackingScreen: React.FC = () => {
   const getMotivationalMessage = () => {
     const percentage = getProgressPercentage();
     if (percentage >= 100) {
-      return "🎉 Amazing! You've reached your daily goal!";
+      return "🎉 Потрясающе! Вы достигли дневной цели!";
     } else if (percentage >= 75) {
-      return "💪 You're almost there! Keep going!";
+      return "💪 Вы почти у цели! Продолжайте!";
     } else if (percentage >= 50) {
-      return "👍 Great progress! Halfway there!";
+      return "👍 Отличный прогресс! Половина пути пройдена!";
     } else if (percentage >= 25) {
-      return "🚶‍♂️ Good start! Keep walking!";
+      return "🚶‍♂️ Хорошее начало! Продолжайте ходить!";
     } else {
-      return "👟 Let's get moving! Every step counts!";
+      return "👟 Давайте двигаться! Каждый шаг имеет значение!";
     }
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+        <Text>Загрузка...</Text>
       </View>
     );
   }
@@ -171,17 +190,23 @@ const StepTrackingScreen: React.FC = () => {
       <LinearGradient
         colors={['#4CAF50', '#45a049']}
         style={styles.header}>
-        <Text style={styles.title}>Step Tracking</Text>
-        <Text style={styles.subtitle}>Track your daily progress</Text>
+        <Text style={styles.title}>Отслеживание шагов</Text>
+        <Text style={styles.subtitle}>Отслеживайте свой ежедневный прогресс</Text>
       </LinearGradient>
 
       <View style={styles.statsContainer}>
+        {/* Real-time Step Counter */}
+        <StepCounter 
+          onStepsUpdate={handleStepsUpdate}
+          style={styles.stepCounterCard}
+        />
+
         <View style={styles.mainStatCard}>
           <View style={styles.stepIcon}>
             <Ionicons name="walk" size={40} color="#4CAF50" />
           </View>
           <Text style={styles.stepNumber}>{todaySteps.toLocaleString()}</Text>
-          <Text style={styles.stepLabel}>Steps Today</Text>
+          <Text style={styles.stepLabel}>Шагов сегодня</Text>
           <View style={styles.progressContainer}>
             <View style={styles.progressBar}>
               <View
@@ -192,7 +217,7 @@ const StepTrackingScreen: React.FC = () => {
               />
             </View>
             <Text style={styles.progressText}>
-              {Math.round(getProgressPercentage())}% of daily goal
+              {Math.round(getProgressPercentage())}% от дневной цели
             </Text>
           </View>
         </View>
@@ -212,27 +237,54 @@ const StepTrackingScreen: React.FC = () => {
             onPress={isTracking ? handleStopTracking : handleStartTracking}>
             <Ionicons name={isTracking ? "stop" : "play"} size={24} color="white" />
             <Text style={styles.actionButtonText}>
-              {isTracking ? "Stop Tracking" : "Start Tracking"}
+              {isTracking ? "Остановить отслеживание" : "Начать отслеживание"}
             </Text>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddSteps}>
           <Ionicons name="add" size={24} color="white" />
-          <Text style={styles.actionButtonText}>Add Steps</Text>
+          <Text style={styles.actionButtonText}>Добавить шаги</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={loadData}>
           <Ionicons name="refresh" size={24} color="white" />
-          <Text style={styles.actionButtonText}>Refresh</Text>
+          <Text style={styles.actionButtonText}>Обновить</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Quick Add Steps Buttons for Testing */}
+      <View style={styles.quickAddContainer}>
+        <Text style={styles.quickAddTitle}>🚶‍♂️ Быстрое добавление шагов (для тестирования)</Text>
+        <View style={styles.quickAddButtons}>
+          <TouchableOpacity 
+            style={styles.quickAddButton} 
+            onPress={() => handleQuickAddSteps(100)}>
+            <Text style={styles.quickAddButtonText}>+100</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.quickAddButton} 
+            onPress={() => handleQuickAddSteps(500)}>
+            <Text style={styles.quickAddButtonText}>+500</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.quickAddButton} 
+            onPress={() => handleQuickAddSteps(1000)}>
+            <Text style={styles.quickAddButtonText}>+1000</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.quickAddButton} 
+            onPress={() => handleQuickAddSteps(5000)}>
+            <Text style={styles.quickAddButtonText}>+5000</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.infoContainer}>
         <View style={styles.infoCard}>
           <Ionicons name="trending-up" size={20} color="#2196F3" />
           <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>Total Steps</Text>
+            <Text style={styles.infoTitle}>Всего шагов</Text>
             <Text style={styles.infoValue}>
               {user?.total_steps?.toLocaleString() || 0}
             </Text>
@@ -242,7 +294,7 @@ const StepTrackingScreen: React.FC = () => {
         <View style={styles.infoCard}>
           <Ionicons name="star" size={20} color="#FF9800" />
           <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>Available Points</Text>
+            <Text style={styles.infoTitle}>Доступные очки</Text>
             <Text style={styles.infoValue}>
               {user?.available_steps?.toLocaleString() || 0}
             </Text>
@@ -251,18 +303,18 @@ const StepTrackingScreen: React.FC = () => {
       </View>
 
       <View style={styles.tipsContainer}>
-        <Text style={styles.tipsTitle}>💡 Tips for More Steps</Text>
+        <Text style={styles.tipsTitle}>💡 Советы для большего количества шагов</Text>
         <View style={styles.tipItem}>
-          <Text style={styles.tipText}>• Take the stairs instead of elevators</Text>
+          <Text style={styles.tipText}>• Используйте лестницу вместо лифта</Text>
         </View>
         <View style={styles.tipItem}>
-          <Text style={styles.tipText}>• Park farther away from your destination</Text>
+          <Text style={styles.tipText}>• Паркуйтесь дальше от места назначения</Text>
         </View>
         <View style={styles.tipItem}>
-          <Text style={styles.tipText}>• Take short walking breaks every hour</Text>
+          <Text style={styles.tipText}>• Делайте короткие прогулки каждый час</Text>
         </View>
         <View style={styles.tipItem}>
-          <Text style={styles.tipText}>• Walk during phone calls</Text>
+          <Text style={styles.tipText}>• Ходите во время телефонных разговоров</Text>
         </View>
       </View>
     </ScrollView>
@@ -297,6 +349,9 @@ const styles = StyleSheet.create({
   statsContainer: {
     padding: 20,
     marginTop: -20,
+  },
+  stepCounterCard: {
+    marginBottom: 20,
   },
   mainStatCard: {
     backgroundColor: 'white',
@@ -459,6 +514,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
+  },
+  quickAddContainer: {
+    backgroundColor: 'white',
+    margin: 20,
+    padding: 20,
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  quickAddTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  quickAddButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+  },
+  quickAddButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    margin: 5,
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  quickAddButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
