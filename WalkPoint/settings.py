@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
+    'steps_tracking.apps.StepsTrackingConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'phonenumber_field',
