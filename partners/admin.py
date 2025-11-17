@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import Partner,CouponCategory,CouponTemplate
 
-# Register your models here.
+admin.site.register(Partner)
+admin.site.register(CouponCategory)
+admin.site.register(CouponTemplate)

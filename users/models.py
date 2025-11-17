@@ -39,6 +39,7 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     phone_number = models.CharField(_('Phone Number'),max_length=20,null=True,blank=True)
     coins = models.IntegerField(default=0)
     overall_steps = models.IntegerField(default=0)
+    is_partner = models.BooleanField(default=False, verbose_name="Is Partner Account")
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
