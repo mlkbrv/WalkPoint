@@ -1,5 +1,6 @@
 # steps_tracking/signals.py
 from django.db.models.signals import post_save
+from django.db import models
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from .models import DailyActivity, CoinTransaction
@@ -23,7 +24,7 @@ def handle_daily_reward(sender, instance, **kwargs):
     user = instance.user
     date = instance.date
 
-    new_reward = calculate_daily_reward(instance.steps_count)
+    new_reward = calculate_daily_reward(instance.steps)
 
     reason_string = f"Daily Steps Reward ({date})"
 
@@ -59,3 +60,12 @@ def handle_daily_reward(sender, instance, **kwargs):
             transaction_type=CoinTransaction.TransactionType.EARNED,
             reason=reason_string
         )
+
+@receiver(post_save, sender=DailyActivity)
+def update_user_overall_steps(sender, instance, **kwargs):
+    user = instance.user
+    total_steps = DailyActivity.objects.filter(user=user).aggregate(
+        total=models.Sum('steps')
+    )['total'] or 0
+    user.overall_steps = total_steps
+    user.save(update_fields=['overall_steps'])

@@ -8,7 +8,7 @@ class DailyActivity(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='activities')
     date = models.DateTimeField(default=timezone.now)
     steps = models.PositiveIntegerField(default=0)
-    duration = models.PositiveIntegerField(default=timedelta(minutes=0))
+    duration = models.PositiveIntegerField(default=0)
     distance_km = models.FloatField(default=0.0)
     calories_burned = models.PositiveIntegerField(default=0)
     source_app = models.CharField(max_length=50, blank=True, null=True,

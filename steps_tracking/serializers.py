@@ -18,13 +18,8 @@ class DailyActivitySerializer(serializers.ModelSerializer):
                   ]
         read_only_fields = ['user']
 
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=DailyActivity.objects.all(),
-                fields=('user', 'date'),
-                message="An activity record for this date already exists.."
-            )
-        ]
+        # Убрали валидатор, так как unique_together уже определен в модели
+        # и Django автоматически проверяет уникальность на уровне БД
 
 
 class CoinTransactionSerializer(serializers.ModelSerializer):

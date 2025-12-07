@@ -5,8 +5,8 @@ class IsPartner(permissions.BasePermission):
         return bool(
             request.user and
             request.user.is_authenticated and
-            request.user.partner_id and
-            hasattr(request.user, 'partner')
+            hasattr(request.user, 'partner') and
+            request.user.partner is not None
         )
 
 class IsOwnerOfCoupon(permissions.BasePermission):

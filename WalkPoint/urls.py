@@ -26,7 +26,8 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('users/', include('users.urls')),
     path('step_tracking/', include('steps_tracking.urls')),
-    path('rewards/', include('rewards.urls')),
+    path('partners/', include('partners.urls')),  # Partner endpoints
+    path('rewards/', include('rewards.urls')),  # User rewards endpoints
 ]
 
 if settings.DEBUG:

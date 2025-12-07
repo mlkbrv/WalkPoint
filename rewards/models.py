@@ -29,7 +29,7 @@ class UserCoupon(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.qr_code_image:
-            qr_data = f"{settings.BASE_API_URL}/api/rewards/redeem/{self.redemption_uuid}/"
+            qr_data = f"{settings.BASE_API_URL}/rewards/redeem/{self.redemption_uuid}/"
 
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(qr_data)

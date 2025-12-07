@@ -54,7 +54,7 @@ class RedeemCouponView(APIView):
     def post(self, request, uuid):
         coupon = get_object_or_404(UserCoupon, redemption_uuid=uuid)
 
-        if coupon.template.partner != request.user.partner_profile:
+        if coupon.template.partner != request.user.partner:
             return Response({"error": "Вы не можете погасить чужой купон."}, status=403)
 
         if coupon.is_redeemed:
