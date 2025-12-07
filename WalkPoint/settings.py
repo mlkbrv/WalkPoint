@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'partners.apps.PartnersConfig',
     'steps_tracking.apps.StepsTrackingConfig',
+    'rewards.apps.RewardsConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'phonenumber_field',
