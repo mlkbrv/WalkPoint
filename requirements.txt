@@ -1,0 +1,8 @@
+Django==5.2.6
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.3.1
+phonenumber-field==7.2.0
+qrcode[pil]==7.4.2
+Pillow==10.4.0
+

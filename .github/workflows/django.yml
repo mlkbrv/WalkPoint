@@ -1,0 +1,79 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run migrations
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY || 'django-insecure-test-key-for-ci' }}
+        DEBUG: 'False'
+        BASE_API_URL: 'http://localhost:8000'
+      run: |
+        python manage.py migrate
+
+    - name: Run tests
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY || 'django-insecure-test-key-for-ci' }}
+        DEBUG: 'False'
+        BASE_API_URL: 'http://localhost:8000'
+        DJANGO_SETTINGS_MODULE: WalkPoint.settings
+      run: |
+        python manage.py test --verbosity=2
+
+    - name: Check code formatting (optional)
+      continue-on-error: true
+      run: |
+        pip install black flake8 || true
+        # black --check . || true
+        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort
+
+    - name: Run flake8
+      continue-on-error: true
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=migrations,__pycache__,*.pyc
+
+    - name: Check code formatting with black
+      continue-on-error: true
+      run: |
+        black --check . --exclude="migrations|__pycache__|*.pyc" || true
+
